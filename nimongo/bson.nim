@@ -320,8 +320,6 @@ proc toBytes*(bs: Bson, res: var string) =
     else:
         raiseWrongNodeException(bs)
 
-proc `$`*(bs: Bson): string
-
 proc bytes*(bs: Bson): string =
     result = ""
     bs.toBytes(result)
@@ -466,7 +464,6 @@ proc toBson*[T](vals: openArray[T]): Bson =
     for val in vals: result.add(toBson(val))
 
 template toBson*(b: Bson): Bson = b
-    ##
 
 proc toBson(x: NimNode): NimNode {.compileTime.} =
   ## Convert NimNode into BSON document
