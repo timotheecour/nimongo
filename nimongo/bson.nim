@@ -105,6 +105,8 @@ type
 
   GeoPoint = array[0..1, float64]   ## Represents Mongo Geo Point
 
+proc newBsonDocument*(): Bson
+
 proc raiseWrongNodeException(bs: Bson) =
     raise newException(Exception, "Wrong node kind: " & $ord(bs.kind))
 
@@ -197,6 +199,21 @@ converter toTime*(x: Bson): Time =
 proc toBson*(x: BsonTimestamp): Bson =
     ## Convert inner BsonTimestamp to Bson object
     return Bson(kind: BsonKindTimestamp, valueTimestamp: x)
+
+from std/typetraits import isNamedTuple
+proc toBson*[T: object | tuple](x: T): Bson = # MODIF PRTMEP: do as i did for json; MOVE to bson2?
+  when T is object or isNamedTuple(T):
+    result = newBsonDocument()
+    for key, val in fieldPairs(x):
+      result[key] = toBson(val)
+  else:
+    result = newBsonArray()
+    for _, val in fieldPairs(x):
+      result.add toBson(val)
+
+proc toBson*(x: ref object): Bson =
+  if x != nil:
+    result = toBson(x[])
 
 converter toTimestamp*(x: Bson): BsonTimestamp =
     ## Convert Bson object to inner BsonTimestamp type
